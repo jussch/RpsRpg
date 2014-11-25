@@ -2,9 +2,9 @@ module RpsRpg
 
   class Actor
 
-    attr_reader :class, :maxhp, :maxmp, :atk, :arm, :res, :stealth, :speed,
+    attr_reader :maxhp, :maxmp, :atk, :arm, :res, :stealth, :speed,
                 :magic, :spells, :equipment, :level, :hp, :mp
-    attr_accessor :abi_damage
+    attr_accessor :abi_damage, :class
 
     def initialize
       @class = nil
