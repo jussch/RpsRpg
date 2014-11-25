@@ -3,7 +3,7 @@ module RpsRpg
   class Actor
 
     attr_reader :class, :maxhp, :maxmp, :atk, :arm, :res, :stealth, :speed,
-                :magic, :spells, :equipment, :level
+                :magic, :spells, :equipment, :level, :hp, :mp
     attr_accessor :abi_damage
 
     def initialize
@@ -21,6 +21,14 @@ module RpsRpg
       @equipment = {}
       @level = 1
       @abi_damage = Hash.new(0)
+    end
+
+    def hp=(hp)
+      @hp = [[hp, 0].max, maxhp].min
+    end
+
+    def mp=(mp)
+      @mp = [[mp, 0].max, maxmp].min
     end
 
     def base_stats(symbol)
@@ -58,7 +66,6 @@ module RpsRpg
     def base_magic
       base_stats(:magic)
     end
-
 
   end
 
