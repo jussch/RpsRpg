@@ -2,12 +2,12 @@ module RpsRpg
 
   class Actor
 
-    attr_reader :maxhp, :maxmp, :atk, :arm, :res, :stealth, :speed,
+    attr_reader :maxhp, :maxmp, :atk, :arm, :stealth, :speed,
                 :magic, :spells, :equipment, :level, :hp, :mp
-    attr_accessor :abi_damage, :class
+    attr_accessor :abi_damage, :jobclass
 
     def initialize
-      @class = nil
+      @jobclass = nil
       @maxhp = 0
       @hp = 0
       @maxmp = 0
@@ -32,7 +32,7 @@ module RpsRpg
     end
 
     def base_stats(symbol)
-      n = @class.send(symbol)[@level]
+      n = @jobclass.send(symbol)[@level]
       @equipment.each do |slot,item|
         n += item.send(symbol)
       end

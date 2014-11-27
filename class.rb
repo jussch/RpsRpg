@@ -1,6 +1,6 @@
 module RpsRpg
 
-  class Class
+  class JobClass
 
     BASE_ABI = {
       maxhp: 300,
