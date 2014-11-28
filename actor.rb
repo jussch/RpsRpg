@@ -2,8 +2,9 @@ module RpsRpg
 
   class Actor
 
-    attr_reader :maxhp, :maxmp, :atk, :arm, :stealth, :speed,
-                :magic, :spells, :equipment, :level, :hp, :mp
+    STATS = [:maxhp, :maxmp, :atk, :arm, :stealth, :speed, :magic]
+
+    attr_reader :spells, :equipment, :level, :hp, :mp
     attr_accessor :abi_damage, :jobclass
 
     def initialize
@@ -21,10 +22,16 @@ module RpsRpg
       @equipment = {}
       @level = 1
       @abi_damage = Hash.new(0)
+      @abi_boost = Hash.new(0)
+      get_stat_readers
     end
 
     def hp=(hp)
       @hp = [[hp, 0].max, maxhp].min
+    end
+
+    def level_up
+      @level += 1
     end
 
     def mp=(mp)
@@ -39,32 +46,18 @@ module RpsRpg
       n
     end
 
-    def base_maxhp
-      base_stats(:maxhp)
-    end
+    def get_stat_readers
+      STATS.each do |stat|
+        Actor.class_eval(
+        "def base_#{stat};
+           base_stats(:#{stat});
+         end;")
 
-    def base_maxmp
-      base_stats(:maxmp)
-    end
-
-    def base_atk
-      base_stats(:atk)
-    end
-
-    def base_armor
-      base_stats(:armor)
-    end
-
-    def base_stealth
-      base_stats(:stealth)
-    end
-
-    def base_speed
-      base_stats(:speed)
-    end
-
-    def base_magic
-      base_stats(:magic)
+        Actor.class_eval(
+        "def #{stat};
+          base_#{stat} + @abi_boost[:#{stat}] - @abi_damage[:#{stat}];
+         end")
+      end
     end
 
   end

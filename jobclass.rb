@@ -13,8 +13,8 @@ module RpsRpg
     }
 
     BASE_ABI_GROWTH = {
-      maxhp: 30,
-      maxmp: 10,
+      maxhp: 31,
+      maxmp: 11,
       atk: 6,
       armor: 6,
       stealth: 4,
@@ -31,8 +31,20 @@ module RpsRpg
       weakness2: 70
     }
 
+    def self.generate_random
+      modifier = Hash.new
+      abilities = BASE_ABI.keys.sample(5)
+      ABI_MODIFIERS.keys.each_with_index do |ord, index|
+        modifier[ord] = abilities[index]
+      end
+      JobClass.new(modifier)
+    end
+
+    attr_reader :name
+
     def initialize(modifiers)
       @base = BASE_ABI.dup
+      @base.each { |k,v| @base[k] = v + rand(4) - 2}
       @growth = BASE_ABI_GROWTH.dup
       modifiers.each do |ord, ability|
         @base[ability] *= ABI_MODIFIERS[ord]
@@ -40,6 +52,14 @@ module RpsRpg
         @growth[ability] *= ABI_MODIFIERS[ord]
         @growth[ability] /= 100
       end
+      @name = generate_name
+      @mod = modifiers
+    end
+
+    def generate_name
+      str = ""
+      3.times { str += ("A".."Z").to_a.sample }
+      str
     end
 
     def generate_curve(ability)
@@ -62,7 +82,7 @@ module RpsRpg
       generate_curve(:atk)
     end
 
-    def armor
+    def arm
       generate_curve(:armor)
     end
 
@@ -76,6 +96,31 @@ module RpsRpg
 
     def magic
       generate_curve(:magic)
+    end
+
+    def get_color(stat)
+      case @mod.key(stat)
+      when :primary
+        :light_green
+      when :secondary, :tertiary
+        :green
+      when :weakness
+        :red
+      when :weakness2
+        :light_red
+      else
+        :default
+      end
+    end
+
+    def render
+      string_arr = [@name.blue + ":".blue,"----------"]
+      @base.keys.each do |stat|
+        stat_str = "#{stat.to_s.capitalize}    "[0,7]
+        color = get_color(stat)
+        string_arr << "#{stat_str}: #{self.send(stat)[1]}".colorize(color)
+      end
+      string_arr
     end
 
   end
