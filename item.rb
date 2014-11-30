@@ -47,12 +47,18 @@ module RpsRpg
 
     attr_accessor :maxhp, :maxmp, :atk, :arm, :stealth, :speed, :magic
 
+    attr_reader :level, :material, :type
+
     def initialize(level, type, material)
       @level = level
       @type = type
       @material = material
       @name = generate_name
       generate_stats
+    end
+
+    def gold_cost
+      @level * MATERIALS[@material]
     end
 
     def generate_name

@@ -2,6 +2,8 @@ module RpsRpg
 
   class HumanPlayer
 
+    STATS = [:maxhp, :maxmp, :hp, :mp, :atk, :arm, :stealth, :speed, :magic]
+
     attr_accessor :actor
     attr_reader :name
 
@@ -26,13 +28,22 @@ module RpsRpg
         end
       end
       puts full_render.join("\n")
-      
+
       input = Integer(gets.chomp)
       selection[input]
     end
 
     def lost?
       @actor.hp <= 0
+    end
+
+    def get_stat_readers
+      STATS.each do |stat|
+        HumanPlayer.class_eval(
+        "def #{stat};
+          @actor.#{stat};
+         end;")
+      end
     end
 
   end

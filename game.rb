@@ -41,8 +41,23 @@ module RpsRpg
         @players.each do |player|
           action = player.get_townaction
           #------
-          #----
+          #------
         end
+      end
+    end
+
+    def fight_phase
+      loop do
+        @players.each do |player|
+          action = player.get_fightaction
+          
+
+        end
+        ordered_players = @players.sort { |a,b| b.speed <=> a.speed }
+        ordered_players.each do
+
+        end
+
       end
     end
 

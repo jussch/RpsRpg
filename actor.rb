@@ -5,7 +5,7 @@ module RpsRpg
     STATS = [:maxhp, :maxmp, :atk, :arm, :stealth, :speed, :magic]
 
     attr_reader :spells, :equipment, :level, :hp, :mp
-    attr_accessor :abi_damage, :jobclass
+    attr_accessor :abi_damage, :abi_boost, :jobclass, :damage
 
     def initialize
       @jobclass = nil
@@ -23,6 +23,8 @@ module RpsRpg
       @level = 1
       @abi_damage = Hash.new(0)
       @abi_boost = Hash.new(0)
+      @states = []
+      @damage = nil
       get_stat_readers
     end
 
@@ -36,6 +38,34 @@ module RpsRpg
 
     def mp=(mp)
       @mp = [[mp, 0].max, maxmp].min
+    end
+
+    def apply_damage(damage)
+      if self.arm >= 0
+        damage -= damage * arm / (arm + 32)
+      else
+        damage += damage * arm.abs / 100
+      end
+      @damage = damage
+      self.hp -= damage
+    end
+
+    def apply_state(state)
+      @states << state
+      state.ability_change.each { |stat, val| @abi_boost[stat] += val }
+    end
+
+    def remove_state(state)
+      @states.delete(state)
+      state.ability_change.each { |stat, val| @abi_boost[stat] -= val }
+    end
+
+    def check_states
+      @states.each do |state|
+        self.deal_damage(state.slip_damage)
+        state.tick
+        remove_state(state) if state.turn == 0
+      end
     end
 
     def base_stats(symbol)
