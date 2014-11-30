@@ -5,7 +5,7 @@ module RpsRpg
     STATS = [:maxhp, :maxmp, :atk, :arm, :stealth, :speed, :magic]
 
     attr_reader :spells, :equipment, :level, :hp, :mp
-    attr_accessor :abi_damage, :abi_boost, :jobclass, :damage
+    attr_accessor :abi_damage, :abi_boost, :jobclass, :damage, :fight_action
 
     def initialize
       @jobclass = nil
@@ -24,7 +24,8 @@ module RpsRpg
       @abi_damage = Hash.new(0)
       @abi_boost = Hash.new(0)
       @states = []
-      @damage = nil
+      @damage = 0
+      @fight_action = nil
       get_stat_readers
     end
 
@@ -40,24 +41,36 @@ module RpsRpg
       @mp = [[mp, 0].max, maxmp].min
     end
 
+    def learn_spell(spell)
+      spell.user = self
+      @spells << spell
+    end
+
     def apply_damage(damage)
       if self.arm >= 0
         damage -= damage * arm / (arm + 32)
       else
         damage += damage * arm.abs / 100
       end
-      @damage = damage
+      @damage += damage
+      @damage /= 2 if @fight_action == :defend
       self.hp -= damage
     end
 
     def apply_state(state)
       @states << state
-      state.ability_change.each { |stat, val| @abi_boost[stat] += val }
+      state.ability_change.each do |stat, val|
+        amount = self.send("base_#{stat}".to_sym) * val / 100
+        @abi_boost[stat] += amount
+      end
     end
 
     def remove_state(state)
       @states.delete(state)
-      state.ability_change.each { |stat, val| @abi_boost[stat] -= val }
+      state.ability_change.each do |stat, val|
+        amount = self.send("base_#{stat}".to_sym) * val / 100
+        @abi_boost[stat] -= amount
+      end
     end
 
     def check_states

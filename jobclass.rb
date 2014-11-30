@@ -6,7 +6,7 @@ module RpsRpg
       maxhp: 300,
       maxmp: 100,
       atk: 24,
-      armor: 24,
+      arm: 24,
       stealth: 24,
       speed: 24,
       magic: 24
@@ -16,7 +16,7 @@ module RpsRpg
       maxhp: 31,
       maxmp: 11,
       atk: 6,
-      armor: 6,
+      arm: 6,
       stealth: 4,
       speed: 4,
       magic: 6
@@ -83,7 +83,7 @@ module RpsRpg
     end
 
     def arm
-      generate_curve(:armor)
+      generate_curve(:arm)
     end
 
     def stealth
