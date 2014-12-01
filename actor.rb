@@ -4,7 +4,7 @@ module RpsRpg
 
     STATS = [:maxhp, :maxmp, :atk, :arm, :stealth, :speed, :magic]
 
-    attr_reader :spells, :equipment, :level, :hp, :mp
+    attr_reader :spells, :equipment, :level, :hp, :mp, :states
     attr_accessor :abi_damage, :abi_boost, :jobclass, :damage, :fight_action
 
     def initialize
@@ -41,20 +41,26 @@ module RpsRpg
       @mp = [[mp, 0].max, maxmp].min
     end
 
+    def self_spells
+      @spells.select { |spell| spell.scope == :self }
+    end
+
     def learn_spell(spell)
       spell.user = self
       @spells << spell
     end
 
     def apply_damage(damage)
+      raw_damage = damage
       if self.arm >= 0
-        damage -= damage * arm / (arm + 32)
+        damage -= damage * arm / (arm + 64)
       else
         damage += damage * arm.abs / 100
       end
       @damage += damage
       @damage /= 2 if @fight_action == :defend
-      self.hp -= damage
+      @damage = raw_damage if raw_damage < 0
+      self.hp -= @damage
     end
 
     def apply_state(state)
@@ -75,9 +81,11 @@ module RpsRpg
 
     def check_states
       @states.each do |state|
-        self.deal_damage(state.slip_damage)
+        if state.slip_damage != nil
+          self.hp -= state.slip_damage
+        end
         state.tick
-        remove_state(state) if state.turn == 0
+        remove_state(state) if state.turn <= 0
       end
     end
 

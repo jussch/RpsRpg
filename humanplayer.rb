@@ -5,7 +5,7 @@ module RpsRpg
 
   class HumanPlayer
 
-    STATS = [:maxhp, :maxmp, :hp, :mp, :atk, :arm, :stealth, :speed, :magic]
+    STATS = [:maxhp, :maxmp, :hp, :mp, :atk, :arm, :stealth, :magic, :speed]
 
     attr_accessor :actor, :enemy, :fight_action
     attr_reader :name
@@ -43,17 +43,60 @@ module RpsRpg
     end
 
     def render_board
-      length = [self.name.length, 6].max
-      str =  "      " + self.name.rjust(length)      + " || #{@enemy.name}\n"
-      str += "HP:   " + self.hp.to_s.rjust(length)   + " || #{@enemy.hp}\n"
-      str += "MP:   " + self.mp.to_s.rjust(length)   + " || #{@enemy.mp}\n"
-      str += "ATTK: " + self.atk.to_s.rjust(length)  + " || #{@enemy.atk}\n"
-      str += "ARMR: " + self.arm.to_s.rjust(length)  + " || #{@enemy.arm}\n"
-      str += "SPEED:" + self.speed.to_s.rjust(length)+ " || #{@enemy.speed}\n"
+      length = [self.name.length, 7].max
+      printed_stats = STATS.drop(2)
+      str =  self.name.rjust(length + 6).light_cyan  + " || "+"#{@enemy.name}\n".light_cyan
+      str += "------------------------\n".light_black
+      printed_stats.each do |stat|
+        str += "------------------------\n".light_black if stat == :stealth || stat == :atk
+        str += "#{stat.to_s.upcase}:".ljust(8)
+        [self, @enemy].each do |player|
+          str += " || " if player == @enemy
+          stat_value = player.send(stat)
+          if stat == :hp || stat == :mp
+            max_value = player.send("max#{stat}".to_sym)
+            case stat_value.fdiv(max_value)
+            when (0.7..1.0)
+              color = stat == :hp ? :green : :blue
+            when (0.3...0.7)
+              color = stat == :hp ? :light_yellow : :cyan
+            when (0.0...0.3)
+              color = stat == :hp ? :red : :light_black
+            end
+          else
+            base_value = player.actor.send("base_#{stat}".to_sym)
+            case stat_value <=> base_value
+            when -1
+              color = :light_red
+            when 0
+              color = :default
+            when 1
+              color = :light_green
+            end
+          end
+          if player == @enemy
+            str += stat_value.to_s.ljust(length - 2).colorize(color)
+          else
+            str += stat_value.to_s.rjust(length - 2).colorize(color)
+          end
+        end
+        str += "\n"
+      end
+      str += "\n"
+    end
+
+    def render_status
+      str = "\tYour status:\n"
+      if @actor.states.size == 0
+        str += "Normal\n"
+      else
+        @actor.states.each { |state| str += "#{state}\n"}
+      end
+      str + "\n"
     end
 
     def render_actions
-      str =  "Actions:\n"
+      str =  "Actions:\n".yellow
       str += "1) Strike: Deal #{self.atk} damage, gain 5 atk.\n"
       str += "2) Defend: Deal #{self.atk/2} damage, take 50% damage, gain 5 armor.\n"
       str += "3) Parry: Negate enemy Strike, stealing if atk and def if it succeeds.\n"
@@ -66,30 +109,32 @@ module RpsRpg
       begin
         system('clear')
         puts render_board
+        puts render_status
         print render_actions
         input = gets.chomp.strip.to_i
 
         case input
         when 1
-          damage = self.atk
+          effect = 5
           action = :strike
         when 2
-          damage = self.atk / 2
+          effect = 5
           action = :defend
         when 3
-          damage = 0
+          effect = 0
           action = :parry
         else
           if input.between?(4, 3+@actor.spells.size)
             action = :cast
-            damage = @actor.spells[input-4]
+            effect = @actor.spells[input-4]
+            raise InvalidInputError.new "Not Enough Mana" if @actor.mp < effect.cost
           else
             raise InvalidInputError.new "Improper Input"
           end
         end
 
         @actor.fight_action = action
-        @fight_action = [action, damage]
+        @fight_action = [action, effect]
       rescue InvalidInputError => e
         puts "Error: #{e.message}"
         sleep(1)
