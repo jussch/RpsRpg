@@ -50,7 +50,15 @@ module RpsRpg
 
   class Spell
 
-    STATS = [:maxhp, :maxmp, :atk, :arm, :stealth, :speed, :magic]
+    STATS = {
+      maxhp: 3,
+      maxmp: 2,
+      atk: 1,
+      arm: 1,
+      stealth: 1,
+      speed: 1,
+      magic: 1
+      }
 
     O_STATES = [
       ["Burning", {slip_damage: 10}],
@@ -121,8 +129,17 @@ module RpsRpg
 
     POSSIBLE_EFFECTS = [:power,:power,:power,:power,:power,:state,:abi_change,:rev_damage,:rev_state]
 
+    BASE_POWER = 18
+    POWER_INC = 14
+    POWER_RAN = 6
+    STAT_INC = 6
+    BASE_COST = -4
+    COST_INC = (11..13)
+    COST_STATE_INC = 2
+    RANDOM_LEVEL_RANGE = (1..7)
+
     def self.create_random
-      level = rand(1..5)
+      level = rand(RANDOM_LEVEL_RANGE)
       scope = [:enemy,:enemy,:enemy,:enemy,:self].sample
       seed = []
       power = 0
@@ -131,6 +148,7 @@ module RpsRpg
       state_pull = scope == :enemy ? O_STATES : D_STATES
       state_rev_pull = scope != :enemy ? O_STATES : D_STATES
       states = []
+
       level.times do
         if scope == :self
           seed << POSSIBLE_EFFECTS.drop(4).sample
@@ -138,32 +156,40 @@ module RpsRpg
           seed << POSSIBLE_EFFECTS.sample
         end
       end
-      cost = 4
+
+      cost = BASE_COST
+
       seed.each do |type|
+
+        if [:power, :rev_damage, :rev_state].include?(type)
+          power = BASE_POWER if power == 0
+          power += POWER_INC + rand(POWER_RAN)
+          power *= 110
+          power /= 100
+        end
+
         case type
-        when :power
-          power += 15 if power == 0
-          power += 8 + rand(4)
         when :state
           states << State.new(*state_pull.sample)
-          cost += 1
+          cost += COST_STATE_INC
         when :abi_change
-          abi_change[STATS.sample] += 4 + rand(4)
-          cost += 1
+          stat = STATS.keys.sample
+          abi_change.each { |k,v| abi_change[k] += v / 2}
+          abi_change[stat] += (STAT_INC + rand(STAT_INC)) * STATS[stat]
+          cost += COST_STATE_INC
         when :rev_damage
-          power += 15 if power == 0
-          rev_change[STATS.sample] += 8 + rand(4)
-          power += 15 + rand(8)
+          stat = STATS.keys.sample
+          rev_change[stat] += (STAT_INC * 2 + rand(STAT_INC)) * STATS[stat]
+          power += POWER_INC + rand(POWER_RAN)
         when :rev_state
-          power += 15 if power == 0
           states << State.new(*state_rev_pull.sample)
-          power += 15 + rand(8)
+          power += POWER_INC + rand(POWER_RAN)
         end
       end
 
       name = NAMES.sample.gsub("xxx",ELEMENTS.sample.to_s.capitalize)
-      cost = 4
-      level.times { cost += rand(4..6) }
+      level.times { cost += rand(COST_INC) }
+
       if scope == :enemy
         Spell.new(name,power,cost,{ability_damage: abi_change,
           ability_boost: rev_change, states: states, scope: scope})
@@ -172,7 +198,6 @@ module RpsRpg
           ability_damage: rev_change, states: states, scope: scope})
       end
     end
-
 
     attr_accessor :user
     attr_reader :name
@@ -191,12 +216,18 @@ module RpsRpg
       @options = default.merge(options)
     end
 
+    def gold_cost
+      100 + rand(23..26) * @level ** 2
+    end
+
     def power
-      @base_power * (@user.magic + 50) / 50
+      return @base_power if @user.nil?
+      @base_power * [@user.magic,0].max / 50
     end
 
     def cost
-      Integer( @base_cost * (1.0 - @user.magic / (@user.magic + 100)) )
+      return @base_cost if @user.nil?
+      Integer( @base_cost * (1.0 - @user.magic.abs / (@user.magic.abs + 50)) )
     end
 
     def scope
@@ -216,11 +247,16 @@ module RpsRpg
     end
 
     def can_use?
+      return true if @user.nil?
       @user.mp >= self.cost
     end
 
     def to_s
-      length = @user.spells.max_by { |spell| spell.name.length }.name.length
+      if @user.nil?
+        length = self.name.length
+      else
+        length = @user.spells.max_by { |spell| spell.name.length }.name.length
+      end
       color = can_use? ? :light_green : :red
       str = "#{self.name}".ljust(length).colorize(color)
       str +="[#{self.cost} MP]: ".rjust(9).blue

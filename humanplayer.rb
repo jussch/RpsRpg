@@ -7,7 +7,7 @@ module RpsRpg
 
     STATS = [:maxhp, :maxmp, :hp, :mp, :atk, :arm, :stealth, :magic, :speed]
 
-    attr_accessor :actor, :enemy, :fight_action
+    attr_accessor :actor, :enemy, :fight_action, :gold
     attr_reader :name
 
     def initialize(name = 'Billy Bob')
@@ -15,6 +15,7 @@ module RpsRpg
       @name = name
       @fight_action = nil
       @enemy = nil
+      @gold = 1000
     end
 
     def apply_damage(damage)

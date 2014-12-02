@@ -5,6 +5,7 @@ require_relative "item.rb"
 require_relative "jobclass.rb"
 require_relative "spell.rb"
 require_relative "town.rb"
+require_relative "quest.rb"
 require 'colorize'
 
 if $PROGRAM_NAME == __FILE__
