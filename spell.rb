@@ -193,10 +193,10 @@ module RpsRpg
       level.times { cost += rand(COST_INC) }
 
       if scope == :enemy
-        Spell.new(name,power,cost,{ability_damage: abi_change,
+        Spell.new(name,level,power,cost,{ability_damage: abi_change,
           ability_boost: rev_change, states: states, scope: scope})
       else
-        Spell.new(name,-power,cost,{ability_boost: abi_change,
+        Spell.new(name,level,-power,cost,{ability_boost: abi_change,
           ability_damage: rev_change, states: states, scope: scope})
       end
     end
@@ -204,8 +204,9 @@ module RpsRpg
     attr_accessor :user
     attr_reader :name
 
-    def initialize(name, power, cost, options = {})
+    def initialize(name, level, power, cost, options = {})
       @user = nil
+      @level = level
       @name = name
       @base_power = power
       @base_cost = cost
@@ -219,7 +220,7 @@ module RpsRpg
     end
 
     def gold_cost
-      100 + rand(23..26) * @level ** 2
+      100 + 25 * @level ** 2
     end
 
     def power
@@ -255,7 +256,7 @@ module RpsRpg
 
     def to_s
       if @user.nil?
-        length = self.name.length
+        length = self.name.length + 1
       else
         length = @user.spells.max_by { |spell| spell.name.length }.name.length
       end

@@ -88,7 +88,7 @@ module RpsRpg
       end
 
       until used_stats >= stats
-        all_stats.shuffle.each do |stat|
+        ALL_STATS.shuffle.each do |stat|
           buff = [rand(stats), stats-used_stats].min
 
           used_stats += buff
@@ -106,7 +106,10 @@ module RpsRpg
     def to_s(adjust = @name.length + 1)
       string =  "#{@name}".ljust(adjust).yellow
       string += "[#{@level}] ".light_black
-      ALL_STATS.each { |stat| string += "[+#{self.send(stat)} #{stat.upcase}]".ljust(13) }
+      ALL_STATS.each do |stat|
+        next if self.send(stat) == 0
+        string += "[+#{self.send(stat)} #{stat.upcase}] "
+      end
       string
     end
 

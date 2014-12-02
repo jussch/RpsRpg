@@ -8,35 +8,33 @@ module RpsRpg
     WITCH_SIZE = 5
     QUEST_SIZE = 5
 
-    def initialize
-      @shop = setup_shop
-      @witch = setup_witch
-      @quests = setup_quests
+    def initialize(shop_size = SHOP_SIZE, witch_size = WITCH_SIZE, quest_size = QUEST_SIZE)
+      @shop = setup_shop(shop_size)
+      @witch = setup_witch(witch_size)
+      @quests = setup_quests(quest_size)
       @name = generate_name
     end
 
-    def setup_shop
-      hash = {}
-      SHOP_SIZE.times do
-        new_item = Item.create_random
-        hash[new_item] = new_item.gold_cost
-      end
-      hash
-    end
-
-    def setup_witch
-      hash = {}
-      WITCH_SIZE.times do
-        new_spell = Spell.create_random
-        hash[new_item] = new_spell.gold_cost
-      end
-      hash
-    end
-
-    def setup_quests
+    def setup_shop(size)
       arr = []
-      QUEST_SIZE.times do
-        arr << Quest.create_random
+      size.times do
+        arr << Item.create_random
+      end
+      arr
+    end
+
+    def setup_witch(size)
+      arr = []
+      size.times do
+        arr << Spell.create_random
+      end
+      arr
+    end
+
+    def setup_quests(size)
+      arr = []
+      size.times do
+        arr << Quest.generate_random
       end
       arr
     end

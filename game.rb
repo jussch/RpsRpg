@@ -28,6 +28,7 @@ module RpsRpg
     def run
       until game_over?
         town_phase
+        next if game_over?
         fight_phase
       end
       if @players.first.lost? && !@players.last.lost?
@@ -55,7 +56,20 @@ module RpsRpg
           puts "[Press Enter]".blink.light_white
           gets.chomp
           action = player.get_townaction(@town)
+          if action == 9
+            if rand(1..100) <= player.enemy.visibility
+              puts "#{player.enemy.name} found! Entering combat."
+              puts "[Press Enter]".blink.light_white
+              gets.chomp
+              return
+            else
+              puts "You failed to find #{player.enemy.name}"
+            end
+          end
+
         end
+        @players.each { |player| player.fame += 35 }
+        return if game_over?
       end
     end
 
@@ -89,6 +103,7 @@ module RpsRpg
 
           player.actor.check_states
           dam_txt = nil
+          escaped = false
 
           case action
           when :strike
@@ -133,6 +148,16 @@ module RpsRpg
             use_txt = "was parried"
             dam_txt = "."
 
+          when :escape
+
+            if rand(100) < (100 - player.visbility)
+              use_txt = "escaped"
+              escaped = true
+            else
+              use_txt = "failed to escaped"
+            end
+            dam_txt = "."
+
           when :cast
 
             spell = effect
@@ -166,13 +191,16 @@ module RpsRpg
 
           player.actor.damage = 0
           player.enemy.actor.damage = 0
+          player.fame = [player.fame - 25, 0].max
           return if game_over?
+          break if escaped
         end
         puts
         puts ordered_players.first.render_board
 
         puts "[Press Enter]".blink.light_white
         gets.chomp
+        return if escaped
       end
     end
 

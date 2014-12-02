@@ -13,20 +13,22 @@ module RpsRpg
 
     QUEST_TYPES = [:atk, :arm, :speed, :magic, :stealth]
 
-    def generate_random
-      level = rand(1..5)
+    def self.generate_random
+      level = rand(1..6)
       type = QUEST_TYPES.sample
       name = VERB.sample + " the " + NOUN.sample
 
-      items = Item.create_random(rand(level)+1)
+      items = [Item.create_random(rand(level)+1)]
 
       rewards = {
-        gold: ( 100 + rand(10..90) * level )
-        items: items.drop(rand(0..1))
+        gold: ( 100 + rand(80..140) * level ),
+        items: items.drop(rand(0..1)),
         levels: ( 1 + level / 3 )
       }
       Quest.new(level, type, rewards, name)
     end
+
+    attr_reader :type, :level, :name
 
     def initialize(level, type, rewards, name)
       @level, @type, @rewards, @name = level, type, rewards, name
@@ -36,8 +38,12 @@ module RpsRpg
       23 + 2 * @level ** 2
     end
 
+    def gold_cost
+      0 #filler
+    end
+
     def risk
-      30 + 3 * @level ** 2
+      30 + 5 * @level ** 2
     end
 
     def gold_gain
@@ -74,7 +80,7 @@ module RpsRpg
       end
       player.gold += gold_gain
       level_gain.times { player.actor.level_up }
-      player.aquire(item_drop.first)
+      player.acquire(item_drop.first) unless item_drop.empty?
     end
 
   end
