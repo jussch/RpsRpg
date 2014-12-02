@@ -7,7 +7,7 @@ module RpsRpg
 
     STATS = [:maxhp, :maxmp, :hp, :mp, :atk, :arm, :stealth, :magic, :speed]
 
-    attr_accessor :actor, :enemy, :fight_action, :gold
+    attr_accessor :actor, :enemy, :fight_action, :gold, :fame
     attr_reader :name
 
     def initialize(name = 'Billy Bob')
@@ -16,6 +16,11 @@ module RpsRpg
       @fight_action = nil
       @enemy = nil
       @gold = 1000
+      @fame = 0
+    end
+
+    def visibility
+      [@fame * (100 - 100 * @actor.stealth / ( 50 + @actor.stealth ) ) / 100, 100].max
     end
 
     def apply_damage(damage)
@@ -43,7 +48,78 @@ module RpsRpg
       selection[input]
     end
 
-    def render_board
+    def enter_shop_sequence(name, shop)
+      begin
+        system('clear')
+
+    end
+
+    def get_townaction(town)
+      begin
+        system('clear')
+        puts render_town_pic(town)
+        puts render_status
+        puts render_t_actions
+        input = gets.chomp.strip.to_i
+
+        case input
+        when 1
+
+
+    end
+
+    def get_fightaction
+      begin
+        system('clear')
+        puts render_board
+        puts render_status
+        print render_f_actions
+        input = gets.chomp.strip.to_i
+
+        case input
+        when 1
+          effect = 5
+          action = :strike
+        when 2
+          effect = 5
+          action = :defend
+        when 3
+          effect = 0
+          action = :parry
+        when (4+@actor.spells.size)
+          effect = 100 - self.visibility
+          action = :escape
+        else
+          if input.between?(4, 3+@actor.spells.size)
+            action = :cast
+            effect = @actor.spells[input-4]
+            raise InvalidInputError.new "Not Enough Mana" if @actor.mp < effect.cost
+          else
+            raise InvalidInputError.new "Improper Input"
+          end
+        end
+
+        @actor.fight_action = action
+        @fight_action = [action, effect]
+      rescue InvalidInputError => e
+        puts "Error: #{e.message}"
+        sleep(1)
+        retry
+      end
+    end
+
+    def lost?
+      @actor.hp <= 0
+    end
+
+    STATS.each do |stat|
+      HumanPlayer.class_eval(
+      "def #{stat};
+        @actor.#{stat};
+       end;")
+    end
+
+    def render_board(player_arr = [self, @enemy])
       length = [self.name.length, 7].max
       printed_stats = STATS.drop(2)
       str =  self.name.rjust(length + 6).light_cyan  + " || "+"#{@enemy.name}\n".light_cyan
@@ -51,7 +127,7 @@ module RpsRpg
       printed_stats.each do |stat|
         str += "------------------------\n".light_black if stat == :stealth || stat == :atk
         str += "#{stat.to_s.upcase}:".ljust(8)
-        [self, @enemy].each do |player|
+        player_arr.each do |player|
           str += " || " if player == @enemy
           stat_value = player.send(stat)
           if stat == :hp || stat == :mp
@@ -96,62 +172,58 @@ module RpsRpg
       str + "\n"
     end
 
-    def render_actions
+    def render_f_actions
       str =  "Actions:\n".yellow
-      str += "1) Strike: Deal #{self.atk} damage, gain 5 atk.\n"
-      str += "2) Defend: Deal #{self.atk/2} damage, take 50% damage, gain 5 armor.\n"
-      str += "3) Parry: Negate enemy Strike, stealing if atk and def if it succeeds.\n"
+      str += "1) Strike: Deal #{self.atk} damage, gain 5 ATK.\n"
+      str += "2) Defend: Deal #{self.atk/2} damage, take 50% damage, gain 5 ARM.\n"
+      str += "3) Parry: Negate enemy Strike, stealing ATK and ARM if it succeeds.\n"
       spells = @actor.spells
       spells.size.times { |i| str += "#{i+4}) Cast #{spells[i]}\n"}
+      str += "#{spells.size + 4}) Escape: #{100 - self.visibility}% chance to run to a nearby town and escape from your foe.\n"
       str += "\n  #{@name}, choose your action: "
     end
 
-    def get_fightaction
-      begin
-        system('clear')
-        puts render_board
-        puts render_status
-        print render_actions
-        input = gets.chomp.strip.to_i
-
-        case input
-        when 1
-          effect = 5
-          action = :strike
-        when 2
-          effect = 5
-          action = :defend
-        when 3
-          effect = 0
-          action = :parry
-        else
-          if input.between?(4, 3+@actor.spells.size)
-            action = :cast
-            effect = @actor.spells[input-4]
-            raise InvalidInputError.new "Not Enough Mana" if @actor.mp < effect.cost
-          else
-            raise InvalidInputError.new "Improper Input"
-          end
-        end
-
-        @actor.fight_action = action
-        @fight_action = [action, effect]
-      rescue InvalidInputError => e
-        puts "Error: #{e.message}"
-        sleep(1)
-        retry
-      end
+    def render_t_actions
+      str =  "Town Actions:\n".yellow
+      str += "Your Gold: #{@gold}".ljust(26) + "Your Visibility: #{self.visibility}%\n"
+      str += "---------------------MAIN----------------------------\n".light_black
+      str += "1) Shop: Buy equipment.\n"
+      str += "2) Witch: Buy spells.\n"
+      str += "3) Quest: Complete quests for money, levels, and possible items.\n"
+      str += "---------------------RECOVER-------------------------\n".light_black
+      str += "4) Inn: Restore your HP and MP.\n"
+      str += "5) Doctor: Restore your ability damage.\n"
+      str += "---------------------TERTIARY------------------------\n".light_black
+      str += "6) Train: Level Up.\n"
+      str += "7) Work: Gain Money.\n"
+      str += "---------------------FIGHT!--------------------------\n".light_black
+      str += "8) Fight: Look for your enemy, given a #{@enemy.visibility}% chance to do so.\n"
     end
 
-    def lost?
-      @actor.hp <= 0
+    def render_town_pic(town)
+      "       #{town.name}    \n"+
+      "             |   _   _ \n"+
+      "       . | . x .|.|-|.|\n"+
+      "    |\ ./.\-/.\-|.|.|.|\n"+
+      " ~~~|.|_|.|_|.|.|.|_|.|~~~"
     end
 
-    STATS.each do |stat|
-      HumanPlayer.class_eval(
-      "def #{stat};
-        @actor.#{stat};
-       end;")
+    def render_shop_pic(shop)
+      "               #{shop} \n"+
+      "                           ::\n"+
+      "                          '>'\n"+
+      "               .:::::::::>|>'>|.\n"+
+      "             ./^               ^':.\n"+
+      "           ./^                    `\\.\n"+
+      "          `~''->>>:::....::::>>>|---'~\n"+
+      "             '                  '\n"+
+      "             '  ..   ....   ..  '       ..:|>\n"+
+      "       :     '  ''   '^^^   '`> '::|>' ^'  '\n"+
+      " -''~ ~ ^'^'^       '~   '> ':> `> '    `> '\n"+
+      "  '> ' ' '>`>       '>   '| ^^  '>    ' '>.|:\n"+
+      "..||.|: : >>>'------''----'-----'~~~~~^^^^^^^\n"+
+      "```        |.. ..'.|:\n"+
+      "           .|'^^`'`^`\n"
     end
 
   end

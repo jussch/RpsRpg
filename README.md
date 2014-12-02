@@ -1,4 +1,4 @@
-Rock Paper Scissors - RPG
+RPS - RPG
 ======================
 
 ###Setup Phase:

@@ -9,7 +9,7 @@ module RpsRpg
       player2.enemy = player1
       @players = [player1, player2]
       setup_players
-      @town = nil#setup_town
+      @town = nil
     end
 
     def setup_players
@@ -22,19 +22,12 @@ module RpsRpg
         player.actor.jobclass = jobclass
         player.actor.hp = player.maxhp
         player.actor.mp = player.maxmp
-        #-----
-        player.actor.learn_spell(Spell.create_random)
-        player.actor.learn_spell(Spell.create_random)
-        player.actor.learn_spell(Spell.create_random)
-        player.actor.learn_spell(Spell.create_random)
-        player.actor.learn_spell(Spell.create_random)
-        player.actor.learn_spell(Spell.create_random)
       end
     end
 
     def run
       until game_over?
-        #town_phase
+        town_phase
         fight_phase
       end
       if @players.first.lost? && !@players.last.lost?
@@ -54,6 +47,7 @@ module RpsRpg
     end
 
     def town_phase
+      @town = Town.new
       loop do
         @players.each do |player|
           system('clear')

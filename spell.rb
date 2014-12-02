@@ -3,6 +3,7 @@ module RpsRpg
   class State
 
     attr_reader :effect, :turn, :name
+    attr_reader :stolen_stats
 
     def initialize(name, effect = {})
       default = {
@@ -13,6 +14,7 @@ module RpsRpg
       @name = name
       @effect = default.merge(effect)
       @turn = @effect[:duration]
+      @stolen_stats = {}
     end
 
     def slip_damage

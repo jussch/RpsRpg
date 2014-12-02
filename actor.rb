@@ -66,7 +66,8 @@ module RpsRpg
     def apply_state(state)
       @states << state
       state.ability_change.each do |stat, val|
-        amount = self.send("base_#{stat}".to_sym) * val / 100
+        amount = self.send(stat) * val / 100
+        state.stolen_stats[stat] = amount
         @abi_boost[stat] += amount
       end
     end
@@ -74,7 +75,7 @@ module RpsRpg
     def remove_state(state)
       @states.delete(state)
       state.ability_change.each do |stat, val|
-        amount = self.send("base_#{stat}".to_sym) * val / 100
+        amount = state.stolen_stats[stat]
         @abi_boost[stat] -= amount
       end
     end
