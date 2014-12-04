@@ -1,6 +1,9 @@
 class InvalidInputError < StandardError
 end
 
+class SkipError < StandardError
+end
+
 module RpsRpg
 
   class HumanPlayer
@@ -128,18 +131,21 @@ module RpsRpg
         case input
         when 1
           item = enter_shop_sequence("Blacksmith", town.shop)
-          raise InvalidInputError.new "No item bought." if item.nil?
+          raise SkipError.new "No item bought." if item.nil?
           acquire(item.dup)
+          @gold -= item.gold_cost
         when 2
           spell = enter_shop_sequence("Wizard's Hut", town.witch)
-          raise InvalidInputError.new "No spell bought." if spell.nil?
+          raise SkipError.new "No spell bought." if spell.nil?
+          raise InvalidInputError.new "Spell already bought." if @actor.spells.include?(spell)
           @actor.learn_spell(spell.dup)
+          @gold -= spell.gold_cost
           puts "You learned #{spell.name}!"
           puts "[Press Enter]".blink
           gets.chomp
         when 3
           quest = enter_shop_sequence("Tavern", town.quests)
-          raise InvalidInputError.new "No quests taken." if quest.nil?
+          raise SkipError.new "No quests taken." if quest.nil?
           quest.do_quest(self)
           town.quests.delete(quest)
           @fame += 10
@@ -175,6 +181,7 @@ module RpsRpg
           puts # Empty Line----
           puts "[Press Enter]".blink
           gets.chomp
+          raise SkipError.new "Equipment Inspected"
         when 9
         else
           raise InvalidInputError.new "Invalid Input."
@@ -185,6 +192,8 @@ module RpsRpg
       rescue InvalidInputError => e
         puts "Error: #{e.message}"
         sleep(1)
+        retry
+      rescue SkipError
         retry
       end
     end

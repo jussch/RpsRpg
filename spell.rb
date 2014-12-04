@@ -305,6 +305,10 @@ module RpsRpg
       @user.mp -= cost
     end
 
+    def ==(other_spell)
+      other_spell.name == self.name
+    end
+
   end
 
 end

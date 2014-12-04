@@ -35,3 +35,20 @@ RPS - RPG
 ###Combat
   - Armor is percentage based.
     - With diminishing returns: 5 arm = 25% DR, 10 arm = 35% DR
+
+
+##TO-DO
+
+  - Classes
+    - Varied Effects
+  - Equipment
+    - Varied Effects
+    - Requirements?
+  - Spells
+    - ~No Repeat Buying Spells~
+  - Town
+    - Update Town displays
+    - ~Gold costing actual gold.~
+    - ~Fighting?????~
+  - Combat
+    - Armor Slicing!!

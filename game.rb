@@ -64,6 +64,7 @@ module RpsRpg
               return
             else
               puts "You failed to find #{player.enemy.name}"
+              sleep(1)
             end
           end
 
@@ -193,14 +194,16 @@ module RpsRpg
           player.enemy.actor.damage = 0
           player.fame = [player.fame - 25, 0].max
           return if game_over?
-          break if escaped
+          if escaped
+            puts "[Press Enter]".blink.light_white
+            gets.chomp
+          end
         end
         puts
         puts ordered_players.first.render_board
 
         puts "[Press Enter]".blink.light_white
         gets.chomp
-        return if escaped
       end
     end
 

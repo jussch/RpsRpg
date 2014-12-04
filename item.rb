@@ -60,7 +60,7 @@ module RpsRpg
     end
 
     def gold_cost
-      ( MATERIALS[@material] / 3 + rand(9) ) * @level ** 2
+      ( MATERIALS[@material] / 3 ) * @level ** 2
     end
 
     def generate_name
