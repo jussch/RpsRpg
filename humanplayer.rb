@@ -43,7 +43,7 @@ module RpsRpg
           input = gets.chomp.strip.upcase
 
           if input == "Y"
-            @actior.equipment[item.type] = item
+            @actor.equipment[item.type] = item
             puts "You equipped the #{item.name}!"
             puts "[Press Enter]".blink
             gets.chomp

@@ -4,9 +4,9 @@ module RpsRpg
 
     attr_reader :shop, :witch, :quests, :name
 
-    SHOP_SIZE = 5
-    WITCH_SIZE = 5
-    QUEST_SIZE = 5
+    SHOP_SIZE = 8
+    WITCH_SIZE = 8
+    QUEST_SIZE = 8
 
     def initialize(shop_size = SHOP_SIZE, witch_size = WITCH_SIZE, quest_size = QUEST_SIZE)
       @shop = setup_shop(shop_size)

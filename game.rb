@@ -151,7 +151,7 @@ module RpsRpg
 
           when :escape
 
-            if rand(100) < (100 - player.visbility)
+            if rand(100) < (100 - player.visibility)
               use_txt = "escaped"
               escaped = true
             else
